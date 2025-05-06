@@ -163,7 +163,7 @@ const Switch = ({ checked, onCheckedChange }: { checked: boolean, onCheckedChang
     role="switch"
     aria-checked={checked}
     onClick={() => onCheckedChange(!checked)}
-    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${checked ? 'bg-indigo-600' : 'bg-gray-200'}`}
+    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ${checked ? 'bg-red-600' : 'bg-gray-200'}`}
   >
     <span
       className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${checked ? 'translate-x-6' : 'translate-x-1'}`}
@@ -184,12 +184,12 @@ const Button = ({ variant = 'default', size = 'default', onClick, children, clas
   children: React.ReactNode,
   className?: string
 }) => {
-  const baseClasses = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500';
+  const baseClasses = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500';
   const variantClasses = variant === 'outline' 
     ? 'border border-gray-300 bg-transparent hover:bg-gray-50 text-gray-700' : 
     variant === 'destructive'
-    ? 'bg-red-600 text-white hover:bg-red-700' :
-    'bg-indigo-600 text-white hover:bg-indigo-700';
+    ? 'bg-red-600 text-gray-100 hover:bg-red-700' :
+    'bg-red-600 text-gray-100 hover:bg-red-700';
   const sizeClasses = size === 'sm' ? 'px-3 py-1.5 text-sm' : 'px-4 py-2 text-sm';
   
   return (
@@ -203,7 +203,7 @@ const Button = ({ variant = 'default', size = 'default', onClick, children, clas
 };
 
 const Skeleton = ({ className = '' }: { className?: string }) => (
-  <div className={`animate-pulse bg-gray-200 rounded-md ${className}`} />
+  <div className={`animate-pulse  rounded-md ${className}`} />
 );
 
 const SeverityBadge = ({ severity }: { severity: 'info' | 'warning' | 'danger' }) => (
@@ -1324,7 +1324,7 @@ const getConstructionInsights = (
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl shadow-sm p-6">
+              <div key={i} className=" rounded-xl shadow-sm p-6">
                 <div className="flex items-center space-x-4">
                   <Skeleton className="h-12 w-12 rounded-lg" />
                   <div className="space-y-2">
@@ -1339,14 +1339,14 @@ const getConstructionInsights = (
   
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {[1, 2].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl shadow-sm p-6">
+              <div key={i} className=" rounded-xl shadow-sm p-6">
                 <Skeleton className="h-6 w-48 mb-4" />
                 <Skeleton className="h-64 w-full" />
               </div>
             ))}
           </div>
   
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className=" rounded-xl shadow-sm p-6">
             <Skeleton className="h-6 w-48 mb-4" />
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-4">
               {[1, 2, 3, 4, 5, 6, 7].map((_, i) => (
@@ -1415,7 +1415,7 @@ const getConstructionInsights = (
               onClick={() => setSelectedTab('overview')}
               className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
                 selectedTab === 'overview'
-                  ? 'border-indigo-500 text-indigo-600'
+                  ? 'border-red-500 text-red-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -1428,7 +1428,7 @@ const getConstructionInsights = (
               onClick={() => setSelectedTab('alerts')}
               className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
                 selectedTab === 'alerts'
-                  ? 'border-indigo-500 text-indigo-600'
+                  ? 'border-red-500 text-red-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -1441,7 +1441,7 @@ const getConstructionInsights = (
               onClick={() => setSelectedTab('safety')}
               className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
                 selectedTab === 'safety'
-                  ? 'border-indigo-500 text-indigo-600'
+                  ? 'border-red-500 text-red-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -1454,7 +1454,7 @@ const getConstructionInsights = (
               onClick={() => setSelectedTab('operations')}
               className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
                 selectedTab === 'operations'
-                  ? 'border-indigo-500 text-indigo-600'
+                  ? 'border-red-500 text-red-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -1470,7 +1470,7 @@ const getConstructionInsights = (
         {selectedTab === 'overview' && (
           <>
             {/* Construction Insights */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-gray-100 bg-opacity-60 rounded-xl shadow-sm p-6">
               <h2 className="text-lg font-semibold mb-4">Construction Site Insights</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 {constructionInsights.map((insight, index) => (
@@ -1523,7 +1523,7 @@ const getConstructionInsights = (
             {/* Current Conditions Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Temperature Card */}
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="bg-gray-100 bg-opacity-60 rounded-xl shadow-sm p-6">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
                     <div className="p-2 bg-blue-100 rounded-lg">
@@ -1566,7 +1566,7 @@ const getConstructionInsights = (
               </div>
   
               {/* Wind Card */}
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="bg-gray-100 bg-opacity-60 rounded-xl shadow-sm p-6">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
                     <div className="p-2 bg-purple-100 rounded-lg">
@@ -1609,7 +1609,7 @@ const getConstructionInsights = (
               </div>
   
               {/* Precipitation Card */}
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className=" bg-gray-100 bg-opacity-60 rounded-xl shadow-sm p-6">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
                     <div className="p-2 bg-blue-100 rounded-lg">
@@ -1652,7 +1652,7 @@ const getConstructionInsights = (
               </div>
   
               {/* Worker Safety Card */}
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className=" bg-gray-100 bg-opacity-60 rounded-xl shadow-sm p-6">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
                     <div className="p-2 bg-red-100 rounded-lg">
@@ -1726,7 +1726,7 @@ const getConstructionInsights = (
             {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Main Chart */}
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="bg-gray-100 bg-opacity-60 rounded-xl shadow-sm p-6">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-semibold">Detailed Weather Metrics</h2>
                   <select
@@ -1777,7 +1777,7 @@ selectedChart === 'airQuality' ? 'Air Quality' :
 </div>
 </div>
         {/* Wind Rose Chart */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-gray-100 bg-opacity-60 rounded-xl shadow-sm p-6">
           <h2 className="text-lg font-semibold mb-4">Wind Direction & Speed</h2>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -1819,7 +1819,7 @@ selectedChart === 'airQuality' ? 'Air Quality' :
 
       {/* Crane Operations Section */}
       {craneStatus && (
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className=" rounded-xl shadow-sm p-6">
           <h2 className="text-lg font-semibold mb-4">Crane Operations Status</h2>
           <div className={`p-4 rounded-lg ${
             craneStatus.operation === 'suspended' ? 'bg-red-50 border-red-500' :
@@ -1844,7 +1844,7 @@ selectedChart === 'airQuality' ? 'Air Quality' :
                 </h3>
                 <p className="text-gray-700">{craneStatus.message}</p>
                 <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-white p-3 rounded-lg shadow-xs">
+                  <div className="bg-gray-50 p-3 rounded-lg shadow-xs">
                     <h4 className="font-medium text-gray-700 mb-2">Operational Limits</h4>
                     <div className="space-y-2">
                       <div className="flex justify-between">
@@ -1861,7 +1861,7 @@ selectedChart === 'airQuality' ? 'Air Quality' :
                       </div>
                     </div>
                   </div>
-                  <div className="bg-white p-3 rounded-lg shadow-xs">
+                  <div className="bg-gray-50 p-3 rounded-lg shadow-xs">
                     <h4 className="font-medium text-gray-700 mb-2">Current Wind Conditions</h4>
                     <div className="space-y-2">
                       <div className="flex justify-between">
@@ -1901,11 +1901,11 @@ selectedChart === 'airQuality' ? 'Air Quality' :
       )}
 
       {/* Forecast Section */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-gray-100 bg-opacity-60 rounded-xl shadow-sm p-6">
         <h2 className="text-lg font-semibold mb-4">7-Day Forecast</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-4">
           {forecastData.map((day, index) => (
-            <div key={index} className="text-center p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+            <div key={index} className="text-center p-3 rounded-lg bg-gray-100 bg-opacity-80 hover:bg-gray-100 transition-colors">
               <p className="font-medium text-gray-700">{day.date.split(',')[0]}</p>
               <p className="text-xs text-gray-500">{day.date.split(',')[1]}</p>
               <div className="my-2 flex justify-center">
@@ -1929,7 +1929,7 @@ selectedChart === 'airQuality' ? 'Air Quality' :
                   <Sunrise className="h-3 w-3 mr-1" />
                   {day.sunrise}
                 </div>
-                <div className="flex items-center justify-center text-indigo-500">
+                <div className="flex items-center justify-center text-red-500">
                   <Sunset className="h-3 w-3 mr-1" />
                   {day.sunset}
                 </div>
@@ -1960,7 +1960,7 @@ selectedChart === 'airQuality' ? 'Air Quality' :
   {selectedTab === 'alerts' && (
     <div className="space-y-6">
       {/* Active Alerts */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-gray-50 rounded-xl shadow-sm p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">Active Alerts ({alerts.length})</h2>
           <div className="flex gap-2">
@@ -2057,7 +2057,7 @@ selectedChart === 'airQuality' ? 'Air Quality' :
       </div>
 
       {/* Work Suggestions */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-gray-50 rounded-xl shadow-sm p-6">
         <h2 className="text-lg font-semibold mb-4">Work & Safety Recommendations</h2>
         <div className="space-y-3">
           {suggestions.length > 0 ? (
@@ -2121,7 +2121,7 @@ selectedChart === 'airQuality' ? 'Air Quality' :
   {selectedTab === 'safety' && workerSafety && (
     <div className="space-y-6">
       {/* Worker Safety Overview */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-gray-50 rounded-xl shadow-sm p-6">
         <h2 className="text-lg font-semibold mb-4">Worker Safety Conditions</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Heat Risk */}
@@ -2260,12 +2260,12 @@ selectedChart === 'airQuality' ? 'Air Quality' :
       </div>
 
       {/* Safety Recommendations */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-gray-50 rounded-xl shadow-sm p-6">
         <h2 className="text-lg font-semibold mb-4">Safety Recommendations</h2>
         <div className="space-y-4">
           {workerSafety.recommendations.map((recommendation, index) => (
             <div key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-              <ClipboardCheck className="h-5 w-5 text-indigo-600 mt-0.5" />
+              <ClipboardCheck className="h-5 w-5 text-red-600 mt-0.5" />
               <p className="text-sm text-gray-700">{recommendation}</p>
             </div>
           ))}
@@ -2273,7 +2273,7 @@ selectedChart === 'airQuality' ? 'Air Quality' :
       </div>
 
       {/* PPE Requirements */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-gray-50 rounded-xl shadow-sm p-6">
         <h2 className="text-lg font-semibold mb-4">Recommended PPE</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {(workerSafety.heatRisk === 'extreme' || workerSafety.heatRisk === 'high') && (
@@ -2344,11 +2344,11 @@ selectedChart === 'airQuality' ? 'Air Quality' :
   {selectedTab === 'operations' && (
     <div className="space-y-6">
       {/* Activity Recommendations */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-gray-50 rounded-xl shadow-sm p-6">
         <h2 className="text-lg font-semibold mb-4">Site Activity Recommendations</h2>
         <div className="space-y-4">
           {activityRecommendations.map((activity, index) => (
-            <div key={index} className="p-4 rounded-lg border border-gray-200 hover:border-indigo-300 transition-colors">
+            <div key={index} className="p-4 rounded-lg border border-gray-200 hover:border-red-300 transition-colors">
               <h3 className="font-medium text-gray-800">{activity.activity}</h3>
               <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
@@ -2382,7 +2382,7 @@ selectedChart === 'airQuality' ? 'Air Quality' :
       </div>
 
       {/* Concrete Pouring Planner */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-gray-50 rounded-xl shadow-sm p-6">
         <h2 className="text-lg font-semibold mb-4">Concrete Pouring Planner</h2>
         <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
           {forecastData.slice(0, 7).map((day, index) => (
@@ -2453,7 +2453,7 @@ selectedChart === 'airQuality' ? 'Air Quality' :
       </div>
 
       {/* Daily Work Schedule */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-gray-50 rounded-xl shadow-sm p-6">
         <h2 className="text-lg font-semibold mb-4">Optimal Work Schedule</h2>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -2473,7 +2473,7 @@ selectedChart === 'airQuality' ? 'Air Quality' :
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-gray-50 divide-y divide-gray-200">
   {[
     { time: '6AM-9AM', activities: ['Steel erection', 'Crane operations', 'Roofing'], conditions: 'Cool temperatures, low wind', crew: 'Full crew' },
     { time: '9AM-12PM', activities: ['Concrete pouring', 'Masonry', 'Framing'], conditions: 'Moderate temperatures', crew: 'Full crew' },
@@ -2528,7 +2528,7 @@ selectedChart === 'airQuality' ? 'Air Quality' :
     </div>
 
     {/* Equipment Readiness */}
-    <div className="bg-white rounded-xl shadow-sm p-6">
+    <div className="rounded-xl shadow-sm p-6">
       <h2 className="text-lg font-semibold mb-4">Equipment Readiness</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div>

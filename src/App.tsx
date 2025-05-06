@@ -1,99 +1,145 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import Sidebar from './components/Sidebar';
-import Header from './components/Header';
-import Alert from './components/Alert'; // Import Alert component
+import Alert from './components/Alert';
 import Dashboard from './pages/Dashboard';
 import CCTVMonitoring from './pages/CCTVMonitoring';
 import WorkerTracking from './pages/WorkerTracking';
 import Attendance from './pages/Attendance';
 import Alerts from './pages/Alerts';
 import Settings from './pages/Settings';
-import Camera from './pages/camera'; // Assuming Camera component is in pages directory
-import History from './pages/History'; // Import the History component
+import Camera from './pages/camera';
+import History from './pages/History';
+import Site from './pages/Site';
+import './App.css';
+import logo3 from "../src/assets/logo3.jpg";
+import backgroundImage from "../src/assets/bg3.png"; // Import your background image
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true); // Start collapsed by default on desktop
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Define handler functions for the Alert component props
-  const handleTrack = (lat: number, lon: number, deviceId?: string) => {
-    console.log(`Tracking device ${deviceId} at Lat: ${lat}, Lon: ${lon}`);
-    // Implement actual tracking logic here
+  // Detect mobile/desktop on mount and resize
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) {
+        setIsCollapsed(false); // Always show full sidebar on mobile
+      }
+    };
+
+    handleResize(); // Initial check
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const toggleSidebar = () => {
+    if (isMobile) {
+      setSidebarOpen(!sidebarOpen);
+    } else {
+      setIsCollapsed(!isCollapsed);
+    }
   };
-
-  const handleViewHistory = (deviceId: string) => {
-    console.log(`Viewing history for device ${deviceId}`);
-    // Implement logic to view history here
-  };
-
-  const handleCheckSafety = (deviceId: string) => {
-    console.log(`Checking safety for device ${deviceId}`);
-    // Implement safety check logic here
-  };
-
 
   return (
     <Router>
-      <div className="flex h-screen bg-gray-100">
-        {/* Overlay */}
-        {sidebarOpen && (
+      <div className="flex h-screen relative">
+        {/* Background Image with proper sizing and blur */}
+        <div 
+          className="fixed inset-0 z-0"
+          style={{
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            filter: 'blur(3px)',
+            transform: 'scale(1.02)', // Very slight scale to prevent blur edges
+            width: '100%',
+            height: '100%',
+          }}
+        />
+        
+        {/* Dark overlay to improve content visibility */}
+        <div className="fixed inset-0 z-0 bg-black bg-opacity-30" />
+
+        {/* Main Content Container */}
+        <div className="flex h-screen w-full relative z-10">
+          {/* Overlay - Only for mobile */}
+          {sidebarOpen && isMobile && (
+            <div
+              className="fixed inset-0 bg-gray-900 bg-opacity-50 z-20 transition-opacity duration-300"
+              onClick={() => setSidebarOpen(false)}
+            />
+          )}
+
+          {/* Sidebar */}
           <div
-            className="fixed inset-0 bg-gray-900 bg-opacity-50 z-20 lg:hidden transition-opacity duration-300"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
+            className={`fixed inset-y-0 left-0 z-30 bg-gray-800 text-white flex-shrink-0 transition-all duration-300 ease-in-out ${
+              isMobile
+                ? `${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} w-64`
+                : `translate-x-0 ${isCollapsed ? 'w-20' : 'w-64'} static`
+            }`}
+          >
+            <Sidebar 
+              onClose={() => setSidebarOpen(false)}
+              isMobile={isMobile}
+              isCollapsed={isCollapsed}
+              toggleSidebar={toggleSidebar}
+            />
+          </div>
 
-        {/* Sidebar */}
-        <div
-          className={`fixed inset-y-0 left-0 transform ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          } lg:translate-x-0 lg:static lg:inset-auto transition duration-300 ease-in-out z-30 w-64 bg-gray-800 text-white flex-shrink-0`}
-        >
-          <Sidebar />
-        </div>
-
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Header */}
-          <header className="bg-white shadow-sm z-10">
-            <div className="flex items-center justify-between p-4">
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="text-gray-600 hover:text-gray-900 focus:outline-none lg:hidden"
-              >
-                <Menu className="h-6 w-6" />
-              </button>
-              {/* Header Component */}
-              <div className="flex-1"> {/* Adjust alignment if needed */}
-                 <Header />
+          {/* Main Content Area */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Header */}
+            <header className="bg-white bg-opacity-80 shadow-sm z-10">
+              <div className="flex items-center justify-between p-4">
+                {/* Menu Button - Only shown on mobile */}
+                {isMobile && (
+                  <button
+                    onClick={toggleSidebar}
+                    className="text-gray-600 hover:text-gray-900 focus:outline-none"
+                  >
+                    <Menu className="h-6 w-6" />
+                  </button>
+                )}
+                
+                {/* Logo - Centered on mobile, left-aligned on desktop */}
+                <div className={`${window.innerWidth < 768 ? 'absolute left-1/2 transform -translate-x-1/2' : 'mx-auto'}`}>
+                  <img 
+                    src={logo3} 
+                    alt="RealG Logo" 
+                    className="h-14 w-auto"
+                  />
+                </div>
+                
+                {/* Empty div to balance flex layout on mobile */}
+                {isMobile && <div className="w-6"></div>}
               </div>
-            </div>
-          </header>
+            </header>
 
-          {/* Alert Component */}
-          <Alert
-            onTrack={handleTrack}
-            onViewHistory={handleViewHistory}
-            onCheckSafety={handleCheckSafety}
-          />
+            {/* Alert Component */}
+            <Alert />
 
-          {/* Main Content */}
-          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-4 md:p-6">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/cctv" element={<CCTVMonitoring />} />
-              <Route path="/camera/:cameraId" element={<Camera />} />
-              <Route path="/history/:cameraId" element={<History />} />
-              <Route path="/tracking" element={<WorkerTracking />} />
-              <Route path="/attendance" element={<Attendance />} />
-              <Route path="/alerts" element={<Alerts />} />
-              <Route path="/settings" element={<Settings />} />
-              {/* Consider adding Home route if needed */}
-              {/* <Route path="/home" element={<Home />} /> */}
-            </Routes>
-          </main>
+            {/* Main Content */}
+            <main className={`flex-1 overflow-x-hidden overflow-y-auto bg-white bg-opacity-80 p-2 md:p-1 transition-all duration-300 ${
+              isMobile ? 'ml-0' : isCollapsed ? 'ml-20' : 'ml-64'
+            }`}>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/cctv" element={<CCTVMonitoring />} />
+                <Route path="/camera/:cameraId" element={<Camera />} />
+                <Route path="/history/:cameraId" element={<History />} />
+                <Route path="/site" element={<Site />} />
+                <Route path="/tracking" element={<WorkerTracking />} />
+                <Route path="/attendance" element={<Attendance />} />
+                <Route path="/alerts" element={<Alerts />} />
+                <Route path="/settings" element={<Settings />} />
+              </Routes>
+            </main>
+          </div>
         </div>
       </div>
     </Router>

@@ -4,7 +4,7 @@ import { Bell, Shield, Gauge, Users, Camera, MapPin } from 'lucide-react';
 const Settings = () => {
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className=" rounded-xl shadow-sm p-6">
         <h2 className="text-lg font-semibold mb-6">System Settings</h2>
         
         <div className="space-y-6">

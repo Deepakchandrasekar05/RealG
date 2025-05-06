@@ -25,7 +25,7 @@ SAFETY_THRESHOLD = 0.65  # Higher confidence threshold for safety equipment
 
 def load_model():
     global model
-    model = YOLO('C:/Users/deepa/Downloads/RealG-main/RealG-main/backend/best.onnx', task='detect')
+    model = YOLO('C:/Users/deepa/Downloads/REALG_ESP (2)/REALG_ESP/project/backend/best.onnx', task='detect')
     _ = model(np.zeros((640, 480, 3), dtype=np.uint8))
     logging.info("Model loaded and warmed up")
 

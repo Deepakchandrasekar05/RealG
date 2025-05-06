@@ -5,9 +5,10 @@ import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 
 const maxVertices = 4;
-const serverUrl = 'http://localhost:5000';
- // Target 30 FPS for drawing
- // Send frame for detection every 1000ms (1 FPS)
+const serverUrl = 'https://cctvrealgbackend-production.up.railway.app';
+//const FRAME_INTERVAL = 1000 / 30;
+const DETECTION_INTERVAL = 1000;
+const VIOLATION_HISTORY_LIMIT = 20;
 
 type Detection = {
   class: string;
@@ -29,10 +30,6 @@ type ViolationHistory = {
   violations: Detection[];
   image?: string;
 };
-
-const FRAME_INTERVAL = 1000 / 30; // Target 30 FPS
-const DETECTION_INTERVAL = 1000;
-const VIOLATION_HISTORY_LIMIT = 20;
 
 const CCTVMonitoring: React.FC = () => {
   const [hasPermission, setHasPermission] = useState(false);
@@ -63,7 +60,7 @@ const CCTVMonitoring: React.FC = () => {
   const alertTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const violationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // --- Utility: Draw Red Zone Overlay ---
+  // Draw Red Zone Overlay
   const drawRedZone = (
     ctx: CanvasRenderingContext2D,
     vertices: [number, number][],
@@ -73,7 +70,7 @@ const CCTVMonitoring: React.FC = () => {
     ctx.save();
     if (isDefined && vertices.length === maxVertices) {
       ctx.beginPath();
-      ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+      ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
       ctx.moveTo(vertices[0][0], vertices[0][1]);
       for (let i = 1; i < vertices.length; i++) ctx.lineTo(vertices[i][0], vertices[i][1]);
       ctx.closePath();
@@ -81,12 +78,12 @@ const CCTVMonitoring: React.FC = () => {
       vertices.forEach(([x, y]) => {
         ctx.beginPath();
         ctx.arc(x, y, 5, 0, 2 * Math.PI);
-        ctx.fillStyle = 'red';
+        ctx.fillStyle = '#ff3333';
         ctx.fill();
       });
     } else if (tempVertices.length > 0) {
       ctx.beginPath();
-      ctx.strokeStyle = 'red';
+      ctx.strokeStyle = '#ff3333';
       ctx.lineWidth = 2;
       ctx.moveTo(tempVertices[0][0], tempVertices[0][1]);
       for (let i = 1; i < tempVertices.length; i++) ctx.lineTo(tempVertices[i][0], tempVertices[i][1]);
@@ -94,14 +91,14 @@ const CCTVMonitoring: React.FC = () => {
       tempVertices.forEach(([x, y]) => {
         ctx.beginPath();
         ctx.arc(x, y, 5, 0, 2 * Math.PI);
-        ctx.fillStyle = 'red';
+        ctx.fillStyle = '#ff3333';
         ctx.fill();
       });
     }
     ctx.restore();
   };
 
-  // --- Utility: Draw Detections ---
+  // Draw Detections
   const drawDetections = (ctx: CanvasRenderingContext2D, detections: Detection[]) => {
     ctx.save();
     detections.forEach(det => {
@@ -112,7 +109,7 @@ const CCTVMonitoring: React.FC = () => {
       let color = '#00FF00';
       if (det.class === 'NO-Hardhat') color = '#FFA500';
       if (det.class === 'NO-Mask') color = '#FFFF00';
-      if (det.class === 'NO-Safety Vest') color = '#FF0000';
+      if (det.class === 'NO-Safety Vest') color = '#ff3333';
       if (det.class === 'Mask') color = '#00FFFF';
       
       ctx.strokeStyle = color;
@@ -131,7 +128,7 @@ const CCTVMonitoring: React.FC = () => {
     ctx.restore();
   };
 
-  // --- Utility: Crop to Red Zone Polygon (bounding box) ---
+  // Crop to Red Zone Polygon
   const cropToRedZone = (imageData: ImageData, vertices: [number, number][]) => {
     if (vertices.length !== 4) return null;
     let minX = Math.min(...vertices.map(v => v[0]));
@@ -160,7 +157,7 @@ const CCTVMonitoring: React.FC = () => {
     return { canvas: offCanvas, offset: { x: minX, y: minY }, width, height };
   };
 
-  // Update detection summary whenever detections change
+  // Update detection summary
   useEffect(() => {
     const summary = {
       persons: detections.filter(d => d.class === "Person").length,
@@ -195,7 +192,7 @@ const CCTVMonitoring: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // --- Main Detection Loop (Optimized) ---
+  // Main Detection Loop
   useEffect(() => {
     if (!hasPermission || isPaused) return;
 
@@ -213,20 +210,15 @@ const CCTVMonitoring: React.FC = () => {
         return;
       }
       
-      // Set canvas dimensions once
       if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
       }
 
-      // Draw video frame
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
-      // Draw overlays
       drawRedZone(ctx, vertices, tempVertices, redZoneDefined);
       drawDetections(ctx, detections);
 
-      // Throttle frame sending
       const now = Date.now();
       if (now - lastSentTime.current >= DETECTION_INTERVAL) {
         lastSentTime.current = now;
@@ -301,14 +293,14 @@ const CCTVMonitoring: React.FC = () => {
     };
   }, [hasPermission, isPaused, vertices, redZoneDefined]);
 
-  // --- Camera Access ---
+  // Camera Access
   useEffect(() => {
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(() => setHasPermission(true))
       .catch(() => alert("Unable to access the camera. Please check your permissions."));
   }, []);
 
-  // --- Red Zone Drawing ---
+  // Red Zone Drawing
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!isPaused) return;
     const canvas = canvasRef.current;
@@ -328,7 +320,7 @@ const CCTVMonitoring: React.FC = () => {
     }
   };
 
-  // --- Pause/Resume ---
+  // Pause/Resume
   const togglePause = () => {
     if (!isPaused) {
       if (webcamRef.current) {
@@ -343,7 +335,7 @@ const CCTVMonitoring: React.FC = () => {
     }
   };
 
-  // --- Person Alert Logic ---
+  // Person Alert Logic
   useEffect(() => {
     if (!redZoneDefined) {
       setPersonAlert({ count: 0, visible: false });
@@ -376,369 +368,219 @@ const CCTVMonitoring: React.FC = () => {
       {
         label: 'Safety Violations',
         data: violationHistory.map(v => v.violations.length),
-        borderColor: 'rgb(255, 99, 132)',
-        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        borderColor: '#ff3333',
+        backgroundColor: 'rgba(255, 51, 51, 0.2)',
         tension: 0.1
       }
     ]
   };
 
   return (
-    <>
+    <div className="min-h-screen p-4 md:p-8">
       {/* Global Alerts */}
       {personAlert.visible && (
-        <div style={{
-          position: 'fixed',
-          top: 30,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 9999,
-          background: '#ff3333',
-          color: '#fff',
-          padding: '18px 36px',
-          borderRadius: 12,
-          fontWeight: 700,
-          fontSize: 22,
-          boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
-          textAlign: 'center',
-          letterSpacing: 1.5,
-          animation: 'fadeIn 0.4s'
-        }}>
+        <div className="fixed top-8 left-1/2 transform -translate-x-1/2 z-50 bg-red-600 text-white px-8 py-4 rounded-lg shadow-lg font-bold text-lg text-center animate-fade-in">
           {`Person detected in red zone (${personAlert.count})`}
         </div>
       )}
 
       {violationAlert.visible && (
-        <div style={{
-          position: 'fixed',
-          top: 90,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 9998,
-          background: '#ff8c00',
-          color: '#fff',
-          padding: '18px 36px',
-          borderRadius: 12,
-          fontWeight: 700,
-          fontSize: 22,
-          boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
-          textAlign: 'center',
-          letterSpacing: 1.5,
-          animation: 'fadeIn 0.4s'
-        }}>
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-orange-500 text-white px-8 py-4 rounded-lg shadow-lg font-bold text-lg text-center animate-fade-in">
           {`Safety violation detected! (${violationAlert.count} issues)`}
         </div>
       )}
 
-      <div style={{
-        background: '#10141a',
-        minHeight: '100vh',
-        padding: 0,
-        margin: 0,
-        fontFamily: 'Segoe UI, Arial, sans-serif'
-      }}>
-        <div style={{
-          maxWidth: 1200,
-          margin: '40px auto',
-          background: '#181c23',
-          borderRadius: 16,
-          boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
-          padding: 24,
-          border: '2px solid #232b39'
-        }}>
-          <h2 style={{
-            color: '#fff',
-            textAlign: 'center',
-            letterSpacing: 2,
-            fontWeight: 700,
-            marginBottom: 24,
-            textShadow: '0 2px 8px #000'
-          }}>Construction Site Safety Monitoring</h2>
-          
-          <div style={{ display: 'flex', gap: 24 }}>
-            {/* Left Column - Camera Feed */}
-            <div style={{ flex: 2 }}>
-              <div style={{
-                position: 'relative',
-                borderRadius: 12,
-                overflow: 'hidden',
-                border: '4px solid #222',
-                boxShadow: '0 2px 16px #000a'
-              }}>
-                {isPaused && screenshot ? (
-                  <img src={screenshot} alt="Paused frame"
-                    style={{
-                      display: 'block',
-                      width: '100%',
-                      height: 400,
-                      objectFit: 'cover',
-                      background: '#000'
-                    }} />
-                ) : (
-                  <Webcam
-                    ref={webcamRef}
-                    screenshotFormat="image/jpeg"
-                    style={{
-                      display: 'block',
-                      width: '100%',
-                      height: 400,
-                      objectFit: 'cover',
-                      background: '#000'
-                    }}
-                    videoConstraints={{ width: 720, height: 400, facingMode: "user" }}
-                  />
-                )}
-                <canvas
-                  ref={canvasRef}
-                  onClick={handleCanvasClick}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    pointerEvents: isPaused ? 'auto' : 'none'
-                  }}
-                />
-              </div>
-              
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginTop: 18
-              }}>
-                <div>
-                  <button
-                    onClick={() => { setRedZoneDefined(false); setVertices([]); setTempVertices([]); }}
-                    style={{
-                      background: 'linear-gradient(90deg,#1e90ff,#00bfff)',
-                      color: '#fff',
-                      padding: '10px 22px',
-                      border: 'none',
-                      borderRadius: 6,
-                      fontWeight: 600,
-                      marginRight: 12,
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 8px #0003'
-                    }}>
-                    Reset Zone
-                  </button>
-                  <button
-                    onClick={togglePause}
-                    style={{
-                      background: isPaused
-                        ? 'linear-gradient(90deg,#28a745,#218838)'
-                        : 'linear-gradient(90deg,#e74c3c,#c0392b)',
-                      color: '#fff',
-                      padding: '10px 22px',
-                      border: 'none',
-                      borderRadius: 6,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 8px #0003'
-                    }}>
-                    {isPaused ? 'Resume' : 'Pause'}
-                  </button>
-                </div>
-                <div style={{ color: '#fff', fontWeight: 500, fontSize: 16 }}>
-                  {redZoneDefined
-                    ? `Active monitoring (${detectionSummary.persons} person(s)`
-                    : `Draw a Red Zone and Resume to begin monitoring`}
-                </div>
-              </div>
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8 md:mb-12">
+          <h1 className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-gray-300 mb-2">
+            Construction Site Surveillance
+          </h1>
+          <p className="text-gray-400 text-sm md:text-base">
+            Real-time safety compliance monitoring
+          </p>
+        </div>
 
-              {errorMsg && (
-                <div style={{
-                  marginTop: 14,
-                  color: '#ff4d4f',
-                  background: '#2c1a1a',
-                  padding: 10,
-                  borderRadius: 6,
-                  fontWeight: 600
-                }}>
-                  {errorMsg}
-                </div>
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left Column - Camera Feed */}
+          <div className="flex-1">
+            <div className="relative rounded-xl overflow-hidden border-4 border-gray-800 shadow-xl">
+              {isPaused && screenshot ? (
+                <img 
+                  src={screenshot} 
+                  alt="Paused frame"
+                  className="w-full h-64 md:h-96 object-cover bg-black"
+                />
+              ) : (
+                <Webcam
+                  ref={webcamRef}
+                  screenshotFormat="image/jpeg"
+                  className="w-full h-64 md:h-96 object-cover bg-black"
+                  videoConstraints={{ width: 720, height: 400, facingMode: "user" }}
+                />
               )}
-              
-              {isPaused && (
-                <div style={{
-                  marginTop: 18,
-                  background: '#1a232e',
-                  padding: '14px 18px',
-                  borderRadius: 8,
-                  color: '#fff',
-                  fontWeight: 500,
-                  fontSize: 15,
-                  boxShadow: '0 2px 8px #0002'
-                }}>
-                  <p style={{ margin: 0 }}>Click 4 points to define a Red Zone. Detection will happen only inside this zone after resume.</p>
-                  <p style={{ margin: 0 }}>Current points: {tempVertices.length} / 4</p>
-                </div>
-              )}
+              <canvas
+                ref={canvasRef}
+                onClick={handleCanvasClick}
+                className="absolute top-0 left-0 w-full h-full cursor-crosshair"
+                style={{ pointerEvents: isPaused ? 'auto' : 'none' }}
+              />
             </div>
             
-            {/* Right Column - Stats and History */}
-            <div style={{ flex: 1 }}>
-              {/* Safety Status Card */}
-              <div style={{
-                background: '#1a232e',
-                borderRadius: 12,
-                padding: 16,
-                marginBottom: 16,
-                boxShadow: '0 2px 8px #0003'
-              }}>
-                <h3 style={{ color: '#fff', marginTop: 0, marginBottom: 16 }}>Safety Status</h3>
-                
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between',
-                  marginBottom: 12,
-                  paddingBottom: 12,
-                  borderBottom: '1px solid #2a3a4d'
-                }}>
-                  <span style={{ color: '#fff' }}>Persons in Zone:</span>
-                  <span style={{ 
-                    color: detectionSummary.persons > 0 ? '#ff6b6b' : '#66ff66',
-                    fontWeight: 600
-                  }}>
+            <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4">
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setRedZoneDefined(false); setVertices([]); setTempVertices([]); }}
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-400 text-white rounded-lg font-semibold shadow-md hover:shadow-lg transition-all"
+                >
+                  Reset Zone
+                </button>
+                <button
+                  onClick={togglePause}
+                  className={`px-4 py-2 text-white rounded-lg font-semibold shadow-md hover:shadow-lg transition-all ${
+                    isPaused 
+                      ? 'bg-gradient-to-r from-green-600 to-green-400' 
+                      : 'bg-gradient-to-r from-red-600 to-red-400'
+                  }`}
+                >
+                  {isPaused ? 'Resume' : 'Pause'}
+                </button>
+              </div>
+              <div className="text-gray-300 font-medium text-sm sm:text-base">
+                {redZoneDefined
+                  ? `Active monitoring (${detectionSummary.persons} person(s))`
+                  : `Draw a Red Zone and Resume to begin monitoring`}
+              </div>
+            </div>
+
+            {errorMsg && (
+              <div className="mt-4 text-red-400 bg-gray-800 p-3 rounded-lg font-medium">
+                {errorMsg}
+              </div>
+            )}
+            
+            {isPaused && (
+              <div className="mt-4 bg-gray-800 p-4 rounded-lg text-gray-300 shadow-md">
+                <p>Click 4 points to define a Red Zone. Detection will happen only inside this zone after resume.</p>
+                <p>Current points: {tempVertices.length} / 4</p>
+              </div>
+            )}
+          </div>
+          
+          {/* Right Column - Stats and History */}
+          <div className="w-full lg:w-80 xl:w-96 space-y-6">
+            {/* Safety Status Card */}
+            <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+              <h3 className="text-xl font-bold text-gray-200 mb-4">Safety Status</h3>
+              
+              <div className="space-y-3">
+                <div className="flex justify-between items-center pb-2 border-b border-gray-700">
+                  <span className="text-gray-300">Persons in Zone:</span>
+                  <span className={`font-semibold ${
+                    detectionSummary.persons > 0 ? 'text-red-400' : 'text-green-400'
+                  }`}>
                     {detectionSummary.persons}
                   </span>
                 </div>
                 
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between',
-                  marginBottom: 12,
-                  paddingBottom: 12,
-                  borderBottom: '1px solid #2a3a4d'
-                }}>
-                  <span style={{ color: '#fff' }}>Without Hardhat:</span>
-                  <span style={{ 
-                    color: detectionSummary.noHardhats > 0 ? '#ff6b6b' : '#66ff66',
-                    fontWeight: 600
-                  }}>
+                <div className="flex justify-between items-center pb-2 border-b border-gray-700">
+                  <span className="text-gray-300">Without Hardhat:</span>
+                  <span className={`font-semibold ${
+                    detectionSummary.noHardhats > 0 ? 'text-red-400' : 'text-green-400'
+                  }`}>
                     {detectionSummary.noHardhats}
                   </span>
                 </div>
                 
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between',
-                  marginBottom: 12,
-                  paddingBottom: 12,
-                  borderBottom: '1px solid #2a3a4d'
-                }}>
-                  <span style={{ color: '#fff' }}>Without Mask:</span>
-                  <span style={{ 
-                    color: detectionSummary.noMasks > 0 ? '#ff6b6b' : '#66ff66',
-                    fontWeight: 600
-                  }}>
+                <div className="flex justify-between items-center pb-2 border-b border-gray-700">
+                  <span className="text-gray-300">Without Mask:</span>
+                  <span className={`font-semibold ${
+                    detectionSummary.noMasks > 0 ? 'text-red-400' : 'text-green-400'
+                  }`}>
                     {detectionSummary.noMasks}
                   </span>
                 </div>
                 
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between',
-                  marginBottom: 12
-                }}>
-                  <span style={{ color: '#fff' }}>Without Vest:</span>
-                  <span style={{ 
-                    color: detectionSummary.noVests > 0 ? '#ff6b6b' : '#66ff66',
-                    fontWeight: 600
-                  }}>
+                <div className="flex justify-between items-center pb-2">
+                  <span className="text-gray-300">Without Vest:</span>
+                  <span className={`font-semibold ${
+                    detectionSummary.noVests > 0 ? 'text-red-400' : 'text-green-400'
+                  }`}>
                     {detectionSummary.noVests}
                   </span>
                 </div>
                 
-                <div style={{ 
-                  background: detectionSummary.violations > 0 ? 'rgba(255, 0, 0, 0.2)' : 'rgba(0, 255, 0, 0.2)',
-                  padding: 12,
-                  borderRadius: 8,
-                  textAlign: 'center',
-                  marginTop: 16
-                }}>
-                  <span style={{ 
-                    color: '#fff',
-                    fontWeight: 700,
-                    fontSize: 18
-                  }}>
+                <div className={`mt-4 p-3 rounded-lg text-center ${
+                  detectionSummary.violations > 0 
+                    ? 'bg-red-900/30 text-red-400' 
+                    : 'bg-green-900/30 text-green-400'
+                }`}>
+                  <span className="font-bold">
                     {detectionSummary.violations > 0 
                       ? `${detectionSummary.violations} Safety Violations!` 
                       : 'All Safety Protocols Followed'}
                   </span>
                 </div>
               </div>
-              
-              {/* Violation Trend Chart */}
-              <div style={{
-                background: '#1a232e',
-                borderRadius: 12,
-                padding: 16,
-                marginBottom: 16,
-                boxShadow: '0 2px 8px #0003'
-              }}>
-                <h3 style={{ color: '#fff', marginTop: 0, marginBottom: 16 }}>Violation Trend</h3>
-                <div style={{ height: 200 }}>
-                  <Line 
-                    data={violationTrendData}
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      plugins: {
-                        legend: { display: false },
-                        tooltip: { enabled: true }
+            </div>
+            
+            {/* Violation Trend Chart */}
+            <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+              <h3 className="text-xl font-bold text-gray-200 mb-4">Violation Trend</h3>
+              <div className="h-48">
+                <Line 
+                  data={violationTrendData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: { display: false },
+                      tooltip: { enabled: true }
+                    },
+                    scales: {
+                      x: { 
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: 'rgba(255,255,255,0.7)' }
                       },
-                      scales: {
-                        x: { grid: { color: 'rgba(255,255,255,0.1)' } },
-                        y: { 
-                          beginAtZero: true,
-                          grid: { color: 'rgba(255,255,255,0.1)' }
-                        }
+                      y: { 
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: 'rgba(255,255,255,0.7)' }
                       }
-                    }}
-                  />
-                </div>
+                    }
+                  }}
+                />
               </div>
-              
-              {/* Recent Violations */}
-              <div style={{
-                background: '#1a232e',
-                borderRadius: 12,
-                padding: 16,
-                boxShadow: '0 2px 8px #0003'
-              }}>
-                <h3 style={{ color: '#fff', marginTop: 0, marginBottom: 16 }}>Recent Violations</h3>
-                {violationHistory.length > 0 ? (
-                  <div style={{ maxHeight: 200, overflowY: 'auto' }}>
-                    {violationHistory.map((violation, i) => (
-                      <div key={i} style={{
-                        background: 'rgba(255,0,0,0.1)',
-                        padding: 8,
-                        borderRadius: 6,
-                        marginBottom: 8
-                      }}>
-                        <div style={{ color: '#ff6b6b', fontWeight: 600 }}>
-                          {new Date(violation.timestamp).toLocaleTimeString()}
-                        </div>
-                        <div style={{ color: '#fff', fontSize: 14 }}>
-                          {violation.violations.map(v => v.class).join(', ')}
-                        </div>
+            </div>
+            
+            {/* Recent Violations */}
+            <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+              <h3 className="text-xl font-bold text-gray-200 mb-4">Recent Violations</h3>
+              {violationHistory.length > 0 ? (
+                <div className="max-h-48 overflow-y-auto space-y-2 pr-2">
+                  {violationHistory.map((violation, i) => (
+                    <div key={i} className="bg-gray-700/50 p-3 rounded-lg">
+                      <div className="text-red-400 font-semibold">
+                        {new Date(violation.timestamp).toLocaleTimeString()}
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div style={{ color: '#aaa', textAlign: 'center', padding: 16 }}>
-                    No recent safety violations detected
-                  </div>
-                )}
-              </div>
+                      <div className="text-gray-300 text-sm">
+                        {violation.violations.map(v => v.class).join(', ')}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-gray-400 text-center py-4">
+                  No recent safety violations detected
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
-    </>
+
+
+    </div>
   );
 };
 
